@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>StockManager Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fdf8f2;--surface:#fff;--surface2:#fef9f4;--surface3:#fdf0e0;
+  --border:#e8d9c5;--accent:#d97706;--accent2:#f59e0b;--glow:rgba(217,119,6,0.18);
+  --green:#16a34a;--gbg:#dcfce7;--amber:#b45309;--abg:#fef3c7;
+  --red:#dc2626;--rbg:#fee2e2;--blue:#2563eb;--bbg:#dbeafe;
+  --text:#1c1917;--t2:#57534e;--t3:#a8a29e;
+  --r:12px;--rs:8px;--sh:0 1px 8px rgba(180,120,40,0.08);--shm:0 4px 20px rgba(180,120,40,0.13);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* LOADER */
+#loader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px}
+.spinner{width:42px;height:42px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* AUTH */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#fdf8f2,#fef3e2)}
+.auth-card{background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:38px 34px;width:100%;max-width:410px;box-shadow:var(--shm)}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:26px;justify-content:center}
+.logo-icon{background:linear-gradient(135deg,#d97706,#f59e0b);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.auth-title{font-size:1.35rem;font-weight:800;text-align:center;margin-bottom:4px}
+.auth-sub{font-size:.83rem;color:var(--t3);text-align:center;margin-bottom:26px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+.field label{font-size:.76rem;font-weight:700;color:var(--t2)}
+.field input{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 13px;color:var(--text);font-family:inherit;font-size:.9rem;outline:none;transition:all .2s;width:100%}
+.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.field input::placeholder{color:var(--t3)}
+.auth-switch{text-align:center;margin-top:18px;font-size:.82rem;color:var(--t3)}
+.auth-switch a{color:var(--accent);font-weight:700;cursor:pointer}
+.msg{border-radius:var(--rs);padding:10px 13px;font-size:.82rem;font-weight:600;margin-bottom:13px;display:none}
+.msg.show{display:block}
+.err{background:var(--rbg);border:1px solid #fca5a5;color:var(--red)}
+.ok{background:var(--gbg);border:1px solid #86efac;color:var(--green)}
+
+/* BUTTONS */
+.btn{border:none;border-radius:var(--rs);padding:10px 16px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:active{transform:scale(.97)}
+.btn-w{width:100%}
+.btn-p{background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;box-shadow:0 2px 10px var(--glow)}
+.btn-p:hover{box-shadow:0 4px 18px var(--glow);transform:translateY(-1px)}
+.btn-p:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-g{background:var(--surface);color:var(--t2);border:1.5px solid var(--border)}
+.btn-g:hover{border-color:var(--accent);color:var(--accent)}
+.btn-d{background:var(--rbg);color:var(--red);border:1.5px solid #fca5a5}
+.btn-d:hover{background:var(--red);color:#fff}
+.btn-sm{padding:7px 13px;font-size:.78rem}
+
+/* HEADER */
+header{background:#fff;border-bottom:2px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:50;box-shadow:var(--sh)}
+.hdr{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px;gap:10px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:1.05rem;color:var(--text);display:flex;align-items:center;gap:8px}
+.logo .logo-icon{width:28px;height:28px;font-size:.85rem}
+.nav-tabs{display:flex;gap:3px}
+.nav-tab{background:none;border:none;font-family:inherit;font-size:.8rem;font-weight:600;color:var(--t3);cursor:pointer;padding:5px 11px;border-radius:20px;transition:all .2s}
+.nav-tab:hover{color:var(--text);background:var(--surface3)}
+.nav-tab.active{background:var(--accent);color:#fff}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.user-chip{background:var(--surface3);border:1.5px solid var(--border);border-radius:20px;padding:4px 11px;font-size:.75rem;font-weight:600;color:var(--t2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.saved-badge{font-size:.7rem;background:var(--gbg);color:var(--green);padding:3px 9px;border-radius:20px;font-weight:700;opacity:0;transition:opacity .3s}
+.saved-badge.show{opacity:1}
+
+/* PAGES */
+.page{display:none;max-width:1280px;margin:0 auto;padding:20px}
+.page.active{display:block}
+
+/* STATS */
+.stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:15px 17px;box-shadow:var(--sh);transition:all .2s}
+.stat-card:hover{box-shadow:var(--shm);transform:translateY(-2px);border-color:var(--accent2)}
+.stat-label{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t3);margin-bottom:5px}
+.stat-value{font-size:1.8rem;font-weight:800;line-height:1}
+.ca{color:var(--accent)}.cg{color:var(--green)}.cr{color:var(--red)}.cb{color:var(--blue)}.ct{color:var(--text)}
+
+/* ADD FORM */
+.add-form{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:16px;box-shadow:var(--sh)}
+.sec-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t3);margin-bottom:12px}
+.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:9px;align-items:end}
+.ff{display:flex;flex-direction:column;gap:4px}
+.ff label{font-size:.71rem;font-weight:600;color:var(--t2)}
+.ff input{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rs);padding:8px 11px;color:var(--text);font-family:inherit;font-size:.875rem;outline:none;transition:all .2s;width:100%}
+.ff input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.ff input::placeholder{color:var(--t3)}
+
+/* TOOLBAR */
+.toolbar{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:13px;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:170px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--t3);pointer-events:none}
+#searchInput{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);padding:8px 11px 8px 34px;color:var(--text);font-family:inherit;font-size:.85rem;outline:none;transition:all .2s}
+#searchInput:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.filter-btns{display:flex;gap:5px;flex-wrap:wrap}
+.filter-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:6px 12px;color:var(--t2);font-family:inherit;font-size:.76rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.fbadge{background:rgba(255,255,255,.3);border-radius:20px;padding:1px 6px;font-size:.66rem;font-weight:800}
+.filter-btn:not(.active) .fbadge{background:var(--surface3);color:var(--t3)}
+
+/* BULK */
+.bulk-bar{background:#fffbeb;border:1.5px solid #fde68a;border-radius:var(--r);padding:10px 15px;margin-bottom:13px;display:none;flex-wrap:wrap;align-items:center;gap:9px}
+.bulk-bar.visible{display:flex}
+.bulk-bar>span{font-size:.82rem;color:var(--amber);font-weight:700}
+#bulkAmount{background:#fff;border:1.5px solid #fde68a;border-radius:var(--rs);padding:6px 10px;color:var(--text);font-family:inherit;font-size:.85rem;width:86px;outline:none}
+
+/* TABLE */
+.table-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.table-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 17px;border-bottom:1.5px solid var(--border);flex-wrap:wrap;gap:9px;background:var(--surface2)}
+table{width:100%;border-collapse:collapse}
+thead th{background:#fef3e2;padding:10px 13px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--amber);border-bottom:1.5px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+thead th:hover{color:var(--accent)}
+thead th.sorted{color:var(--accent)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .12s}
+tbody tr:nth-child(even){background:#fefcf9}
+tbody tr:hover{background:#fef9f0}
+tbody tr:last-child{border-bottom:none}
+td{padding:9px 13px;font-size:.85rem;vertical-align:middle}
+td input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--accent)}
+.nc{font-weight:700;color:var(--text)}
+.cc{color:var(--t3);font-size:.8rem;font-weight:500}
+.qty-wrap{display:flex;align-items:center;gap:4px}
+.qb{background:var(--surface2);border:1.5px solid var(--border);border-radius:5px;width:25px;height:25px;color:var(--t2);font-size:.76rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.qb:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.qb.big{font-size:.58rem;width:29px}
+.qi{width:56px;background:var(--surface2);border:1.5px solid var(--border);border-radius:5px;padding:4px 5px;color:var(--text);font-family:inherit;font-size:.85rem;font-weight:600;text-align:center;outline:none}
+.qi:focus{border-color:var(--accent)}
+.bs{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.67rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
+.bs.in{background:var(--gbg);color:var(--green)}
+.bs.low{background:var(--abg);color:var(--amber)}
+.bs.out{background:var(--rbg);color:var(--red)}
+.bs .dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.del-btn{background:none;border:none;color:var(--t3);cursor:pointer;padding:4px;border-radius:5px;display:flex;align-items:center;transition:all .15s}
+.del-btn:hover{color:var(--red);background:var(--rbg)}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:50px 20px;color:var(--t3)}
+.empty-state .ei{font-size:2rem;margin-bottom:9px}
+.empty-state strong{display:block;font-size:.9rem;color:var(--t2);margin-bottom:3px}
+
+/* HISTORY */
+.history-list{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.hday{background:#fef3e2;padding:7px 17px;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--amber);border-bottom:1px solid var(--border)}
+.hitem{display:flex;align-items:center;gap:13px;padding:11px 17px;border-bottom:1px solid #f5ede0;transition:background .12s}
+.hitem:hover{background:#fef9f0}
+.hitem:last-child{border-bottom:none}
+.hico{width:33px;height:33px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.hico.add{background:var(--gbg)}.hico.remove{background:var(--rbg)}.hico.create{background:var(--bbg)}.hico.delete{background:#fce7f3}
+.hinfo{flex:1;min-width:0}
+.hinfo strong{font-size:.85rem;font-weight:700;color:var(--text);display:block}
+.hinfo span{font-size:.74rem;color:var(--t3)}
+.hmeta{text-align:right;flex-shrink:0}
+.hdelta{font-size:.8rem;font-weight:800}
+.hdelta.pos{color:var(--green)}.hdelta.neg{color:var(--red)}.hdelta.neu{color:var(--blue)}
+.htime{font-size:.68rem;color:var(--t3);margin-top:2px}
+
+/* ADMIN */
+.admin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:20px}
+.astat{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:17px 19px;box-shadow:var(--sh)}
+.astat .al{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t3);margin-bottom:5px}
+.astat .av{font-size:1.7rem;font-weight:800}
+.badge-admin{background:#fce7f3;color:#be185d;border-radius:20px;padding:2px 9px;font-size:.68rem;font-weight:800}
+.badge-user{background:var(--bbg);color:var(--blue);border-radius:20px;padding:2px 9px;font-size:.68rem;font-weight:800}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);backdrop-filter:blur(3px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:26px;max-width:370px;width:90%;transform:scale(.95);transition:transform .2s;box-shadow:var(--shm)}
+.modal-overlay.show .modal{transform:scale(1)}
+.modal h3{font-size:1rem;font-weight:800;margin-bottom:7px}
+.modal p{color:var(--t2);font-size:.85rem;margin-bottom:20px}
+.modal-actions{display:flex;gap:9px;justify-content:flex-end}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+@media(max-width:860px){.form-grid{grid-template-columns:1fr 1fr}.form-grid>.btn{grid-column:span 2}.admin-grid{grid-template-columns:1fr 1fr}.stats-bar{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.stats-bar{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.form-grid>.btn{grid-column:1}.qb.big{display:none}.admin-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="spinner"></div>
+  <div style="font-size:.88rem;color:var(--t2);font-weight:600">Loading StockManager Pro…</div>
+</div>
+
+<!-- LOGIN -->
+<div class="auth-wrap" id="loginScreen" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo"><div class="logo-icon">📦</div><span style="font-weight:800;font-size:1.1rem">StockManager Pro</span></div>
+    <div class="auth-title">Welcome back 👋</div>
+    <div class="auth-sub">Sign in to manage your inventory</div>
+    <div class="msg err" id="loginErr"></div>
+    <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"/></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"/></div>
+    <button class="btn btn-p btn-w" id="loginBtn" onclick="doLogin()" style="margin-top:6px">Sign In</button>
+    <div class="auth-switch">No account? <a onclick="showScreen('signup')">Create one free</a></div>
+  </div>
+</div>
+
+<!-- SIGNUP -->
+<div class="auth-wrap" id="signupScreen" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo"><div class="logo-icon">📦</div><span style="font-weight:800;font-size:1.1rem">StockManager Pro</span></div>
+    <div class="auth-title">Create Account</div>
+    <div class="auth-sub">Your data is saved to your account permanently</div>
+    <div class="msg err" id="signupErr"></div>
+    <div class="msg ok" id="signupOk"></div>
+    <div class="field"><label>Username</label><input type="text" id="signupName" placeholder="John Doe"/></div>
+    <div class="field"><label>Email</label><input type="email" id="signupEmail" placeholder="you@example.com"/></div>
+    <div class="field"><label>Password (min 6 chars)</label><input type="password" id="signupPass" placeholder="••••••••"/></div>
+    <button class="btn btn-p btn-w" id="signupBtn" onclick="doSignup()" style="margin-top:6px">Create Account</button>
+    <div class="auth-switch">Have an account? <a onclick="showScreen('login')">Sign in</a></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appShell" style="display:none">
+  <header>
+    <div class="hdr">
+      <div class="logo"><div class="logo-icon">📦</div>StockManager Pro</div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="showPage('inventory')">📋 Inventory</button>
+        <button class="nav-tab" onclick="showPage('history')">🕐 History</button>
+        <button class="nav-tab" id="adminTab" onclick="showPage('admin')" style="display:none">🛡 Admin</button>
+      </div>
+      <div class="hdr-r">
+        <span class="user-chip" id="userChip">—</span>
+        <span class="saved-badge" id="savedBadge">✓ Saved</span>
+        <button class="btn btn-g btn-sm" onclick="doLogout()">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- INVENTORY -->
+  <div class="page active" id="page-inventory">
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-label">Total Items</div><div class="stat-value ct" id="s-total">0</div></div>
+      <div class="stat-card"><div class="stat-label">In Stock</div><div class="stat-value cg" id="s-in">0</div></div>
+      <div class="stat-card"><div class="stat-label">Low Stock</div><div class="stat-value ca" id="s-low">0</div></div>
+      <div class="stat-card"><div class="stat-label">Out of Stock</div><div class="stat-value cr" id="s-out">0</div></div>
+      <div class="stat-card"><div class="stat-label">Total Units</div><div class="stat-value cb" id="s-units">0</div></div>
+    </div>
+    <div class="add-form">
+      <div class="sec-title">➕ Add New Item</div>
+      <div class="form-grid">
+        <div class="ff"><label>Item Name *</label><input type="text" id="fName" placeholder="e.g. Wireless Headphones"/></div>
+        <div class="ff"><label>Category</label><input type="text" id="fCat" placeholder="e.g. Electronics"/></div>
+        <div class="ff"><label>Quantity</label><input type="number" id="fQty" placeholder="0" min="0"/></div>
+        <div class="ff"><label>Low Stock At</label><input type="number" id="fThresh" placeholder="5" min="0"/></div>
+        <button class="btn btn-p btn-sm" onclick="addItem()" style="align-self:end;height:38px">+ Add</button>
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Search by name or category…" oninput="renderTable()"/>
+      </div>
+      <div class="filter-btns">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All <span class="fbadge" id="b-all">0</span></button>
+        <button class="filter-btn" data-filter="in" onclick="setFilter('in')">In Stock <span class="fbadge" id="b-in">0</span></button>
+        <button class="filter-btn" data-filter="low" onclick="setFilter('low')">Low Stock <span class="fbadge" id="b-low">0</span></button>
+        <button class="filter-btn" data-filter="out" onclick="setFilter('out')">Out of Stock <span class="fbadge" id="b-out">0</span></button>
+      </div>
+    </div>
+    <div class="bulk-bar" id="bulkBar">
+      <span id="bulkCount">0 selected</span>
+      <input type="number" id="bulkAmount" placeholder="Amount" min="1"/>
+      <button class="btn btn-p btn-sm" onclick="bulkAdjust(1)">+ Add</button>
+      <button class="btn btn-g btn-sm" onclick="bulkAdjust(-1)">− Remove</button>
+      <button class="btn btn-g btn-sm" onclick="clearSel()">✕</button>
+    </div>
+    <div class="table-wrap">
+      <div class="table-hdr">
+        <span style="font-size:.82rem;color:var(--t2);font-weight:600" id="rowCount">0 items</span>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <button class="btn btn-g btn-sm" onclick="exportCSV()">⬇ CSV</button>
+          <button class="btn btn-d btn-sm" onclick="openModal('clearModal')">🗑 Clear All</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th style="width:34px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"/></th>
+            <th onclick="sortBy('name')">Item Name <span id="sort-name"></span></th>
+            <th onclick="sortBy('category')">Category <span id="sort-category"></span></th>
+            <th onclick="sortBy('quantity')" style="width:210px">Quantity <span id="sort-quantity"></span></th>
+            <th>Status</th>
+            <th style="width:38px"></th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="page" id="page-history">
+    <div class="toolbar" style="margin-bottom:14px">
+      <input type="text" id="histSearch" placeholder="Search history…" oninput="renderHistory()" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);padding:8px 11px;color:var(--text);font-family:inherit;font-size:.85rem;outline:none;flex:1;min-width:150px"/>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="filter-btn active" data-hf="all" onclick="setHistF('all')">All</button>
+        <button class="filter-btn" data-hf="add" onclick="setHistF('add')">➕ Added</button>
+        <button class="filter-btn" data-hf="remove" onclick="setHistF('remove')">➖ Removed</button>
+        <button class="filter-btn" data-hf="create" onclick="setHistF('create')">🆕 Created</button>
+        <button class="filter-btn" data-hf="delete" onclick="setHistF('delete')">🗑 Deleted</button>
+      </div>
+      <button class="btn btn-g btn-sm" onclick="openModal('clearHistModal')">Clear History</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="page" id="page-admin">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+      <div>
+        <h2 style="font-size:1.15rem;font-weight:800">🛡 Admin Dashboard</h2>
+        <p style="font-size:.8rem;color:var(--t3);margin-top:2px">All registered users — only visible to you</p>
+      </div>
+      <button class="btn btn-g btn-sm" onclick="loadAdminData()">🔄 Refresh</button>
+    </div>
+    <div class="admin-grid">
+      <div class="astat"><div class="al">Total Users</div><div class="av cb" id="a-total">—</div></div>
+      <div class="astat"><div class="al">Latest Signup</div><div class="av" id="a-latest" style="font-size:.95rem;margin-top:5px">—</div></div>
+      <div class="astat"><div class="al">Your Role</div><div class="av ca" style="font-size:.95rem;margin-top:5px">Admin 🛡</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-hdr"><span style="font-size:.82rem;font-weight:700;color:var(--t2)">Registered Users</span></div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>#</th><th>Username</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+          <tbody id="adminTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="clearModal" onclick="closeModal('clearModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>🗑 Clear All Stock?</h3>
+    <p>All your items will be permanently deleted from your account.</p>
+    <div class="modal-actions">
+      <button class="btn btn-g btn-sm" onclick="closeModal('clearModal')">Cancel</button>
+      <button class="btn btn-d btn-sm" onclick="clearAll()">Yes, Clear All</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="clearHistModal" onclick="closeModal('clearHistModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>🕐 Clear History?</h3>
+    <p>All history logs will be permanently erased.</p>
+    <div class="modal-actions">
+      <button class="btn btn-g btn-sm" onclick="closeModal('clearHistModal')">Cancel</button>
+      <button class="btn btn-d btn-sm" onclick="clearHistory()">Yes, Clear</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDKs (compat mode — works in sandbox) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-firestore-compat.min.js"></script>
+<script>
+const ADMIN_EMAIL='vanshmodi958@gmail.com';
+firebase.initializeApp({
+  apiKey:"AIzaSyAyMlHnNAjxkkN7D-dQ_3_Ha7RqWYgi7W8",
+  authDomain:"stockmanagerpro-cd190.firebaseapp.com",
+  projectId:"stockmanagerpro-cd190",
+  storageBucket:"stockmanagerpro-cd190.firebasestorage.app",
+  messagingSenderId:"891438388222",
+  appId:"1:891438388222:web:26fb0691f8deaa1ea8e6af"
+});
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+let currentUser=null,items=[],history=[],unsub=null;
+let filter='all',histFilter='all',sortCol='name',sortDir=1;
+
+/* ── UTILS ── */
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function getStatus(it){if(it.quantity<=0)return'out';if(it.quantity<=it.threshold)return'low';return'in';}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function flashSaved(){const el=document.getElementById('savedBadge');el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),1800);}
+function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
+function hideMsg(id){document.getElementById(id).classList.remove('show');}
+function friendlyErr(code){
+  const m={'auth/invalid-email':'Invalid email.','auth/user-not-found':'No account with this email.','auth/wrong-password':'Incorrect password.','auth/email-already-in-use':'Email already registered.','auth/weak-password':'Password too weak.','auth/invalid-credential':'Invalid email or password.'};
+  return m[code]||'Something went wrong. Try again.';
+}
+
+/* ── SCREENS ── */
+function showScreen(s){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('signupScreen').style.display='none';
+  document.getElementById('appShell').style.display='none';
+  if(s==='login')document.getElementById('loginScreen').style.display='flex';
+  else if(s==='signup')document.getElementById('signupScreen').style.display='flex';
+  else document.getElementById('appShell').style.display='block';
+}
+
+/* ── AUTH ── */
+async function doLogin(){
+  hideMsg('loginErr');
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  if(!email||!pass){showErr('loginErr','Please fill in all fields.');return;}
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true;btn.textContent='Signing in…';
+  try{await auth.signInWithEmailAndPassword(email,pass);}
+  catch(e){showErr('loginErr',friendlyErr(e.code));}
+  finally{btn.disabled=false;btn.textContent='Sign In';}
+}
+
+async function doSignup(){
+  hideMsg('signupErr');hideMsg('signupOk');
+  const name=document.getElementById('signupName').value.trim();
+  const email=document.getElementById('signupEmail').value.trim();
+  const pass=document.getElementById('signupPass').value;
+  if(!name||!email||!pass){showErr('signupErr','All fields are required.');return;}
+  if(pass.length<6){showErr('signupErr','Password must be at least 6 characters.');return;}
+  const btn=document.getElementById('signupBtn');
+  btn.disabled=true;btn.textContent='Creating account…';
+  try{
+    const cred=await auth.createUserWithEmailAndPassword(email,pass);
+    await cred.user.updateProfile({displayName:name});
+    await db.collection('users').doc(cred.user.uid).set({
+      uid:cred.user.uid,username:name,email,
+      role:email===ADMIN_EMAIL?'admin':'user',
+      joinedAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('stockData').doc(cred.user.uid).set({items:[],history:[]});
+    const ok=document.getElementById('signupOk');
+    ok.textContent='Account created! Signing you in…';ok.classList.add('show');
+  }catch(e){showErr('signupErr',friendlyErr(e.code));}
+  finally{btn.disabled=false;btn.textContent='Create Account';}
+}
+
+async function doLogout(){
+  if(unsub)unsub();
+  items=[];history=[];
+  await auth.signOut();
+}
+
+/* ── FIRESTORE ── */
+function startListener(uid){
+  if(unsub)unsub();
+  unsub=db.collection('stockData').doc(uid).onSnapshot(snap=>{
+    if(snap.exists){
+      const d=snap.data();
+      items=(d.items||[]).map(i=>({...i,_sel:false}));
+      history=d.history||[];
+      render();
+    }
+  });
+}
+
+async function saveData(){
+  if(!currentUser)return;
+  try{
+    await db.collection('stockData').doc(currentUser.uid).update({
+      items:items.map(({_sel,...r})=>r),
+      history
+    });
+    flashSaved();
+  }catch(e){console.error(e);}
+}
+
+/* ── AUTH STATE ── */
+auth.onAuthStateChanged(user=>{
+  document.getElementById('loader').style.display='none';
+  if(user){
+    currentUser=user;
+    document.getElementById('userChip').textContent=user.displayName||user.email;
+    document.getElementById('adminTab').style.display=user.email===ADMIN_EMAIL?'':'none';
+    showScreen('app');
+    startListener(user.uid);
+    if(user.email===ADMIN_EMAIL)loadAdminData();
+  }else{
+    currentUser=null;
+    showScreen('login');
+  }
+});
+
+/* ── ADMIN ── */
+async function loadAdminData(){
+  if(!currentUser||currentUser.email!==ADMIN_EMAIL)return;
+  const snap=await db.collection('users').orderBy('joinedAt').get();
+  const users=[];
+  snap.forEach(d=>users.push(d.data()));
+  document.getElementById('a-total').textContent=users.length;
+  const latest=users[users.length-1];
+  document.getElementById('a-latest').textContent=latest?(latest.username||latest.email):'—';
+  document.getElementById('adminTbody').innerHTML=users.map((u,i)=>`<tr>
+    <td style="color:var(--t3);font-size:.78rem">${i+1}</td>
+    <td class="nc">${esc(u.username||'—')}</td>
+    <td style="font-size:.8rem;color:var(--t2)">${esc(u.email)}</td>
+    <td><span class="${u.role==='admin'?'badge-admin':'badge-user'}">${u.role||'user'}</span></td>
+    <td style="font-size:.76rem;color:var(--t3)">${u.joinedAt?new Date(u.joinedAt.seconds*1000).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'—'}</td>
+  </tr>`).join('');
+}
+
+/* ── ITEMS ── */
+function logH(type,name,cat,delta){
+  history.unshift({id:uid(),type,itemName:name,category:cat,delta,ts:Date.now()});
+  if(history.length>500)history=history.slice(0,500);
+}
+function addItem(){
+  const nameEl=document.getElementById('fName');
+  const name=nameEl.value.trim();
+  if(!name){nameEl.style.outline='2px solid #ef4444';nameEl.focus();setTimeout(()=>nameEl.style.outline='',1500);return;}
+  const cat=document.getElementById('fCat').value.trim()||'General';
+  const qty=Math.max(0,parseInt(document.getElementById('fQty').value)||0);
+  const thresh=Math.max(0,parseInt(document.getElementById('fThresh').value)||0);
+  items.push({id:uid(),name,category:cat,quantity:qty,threshold:thresh});
+  logH('create',name,cat,qty);
+  ['fName','fCat','fQty','fThresh'].forEach(id=>document.getElementById(id).value='');
+  saveData();render();
+}
+function deleteItem(id){
+  const it=items.find(i=>i.id===id);if(it)logH('delete',it.name,it.category,it.quantity);
+  items=items.filter(i=>i.id!==id);saveData();render();
+}
+function changeQty(id,delta){
+  const it=items.find(i=>i.id===id);if(!it)return;
+  const prev=it.quantity;it.quantity=Math.max(0,it.quantity+delta);
+  const actual=it.quantity-prev;if(actual!==0)logH(actual>0?'add':'remove',it.name,it.category,actual);
+  saveData();render();
+}
+function setQty(id,val){
+  const it=items.find(i=>i.id===id);if(!it)return;
+  const prev=it.quantity;it.quantity=Math.max(0,parseInt(val)||0);
+  const delta=it.quantity-prev;if(delta!==0)logH(delta>0?'add':'remove',it.name,it.category,delta);
+  saveData();renderStats();
+}
+function clearAll(){items.forEach(it=>logH('delete',it.name,it.category,it.quantity));items=[];closeModal('clearModal');saveData();render();}
+function clearHistory(){history=[];closeModal('clearHistModal');saveData();renderHistory();}
+
+/* ── SELECTION ── */
+function toggleSelectAll(cb){getVisible().forEach(v=>{const it=items.find(i=>i.id===v.id);if(it)it._sel=cb.checked;});renderTable();updateBulkBar();}
+function toggleSel(id,c){const it=items.find(i=>i.id===id);if(it)it._sel=c;updateBulkBar();}
+function updateBulkBar(){
+  const sel=items.filter(i=>i._sel);
+  document.getElementById('bulkCount').textContent=sel.length+' selected';
+  document.getElementById('bulkBar').classList.toggle('visible',sel.length>0);
+}
+function clearSel(){items.forEach(i=>i._sel=false);render();}
+function bulkAdjust(sign){
+  const amt=parseInt(document.getElementById('bulkAmount').value)||0;
+  if(amt<=0)return alert('Enter a valid amount.');
+  items.filter(i=>i._sel).forEach(i=>{i.quantity=Math.max(0,i.quantity+sign*amt);logH(sign>0?'add':'remove',i.name,i.category,sign*amt);i._sel=false;});
+  document.getElementById('bulkAmount').value='';saveData();render();
+}
+
+/* ── FILTER/SORT ── */
+function setFilter(f){
+  filter=f;
+  document.querySelectorAll('.filter-btn[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));
+  renderTable();
+}
+function sortBy(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}renderTable();}
+function getVisible(){
+  const q=(document.getElementById('searchInput').value||'').toLowerCase();
+  return items.filter(it=>(filter==='all'||getStatus(it)===filter)&&(!q||it.name.toLowerCase().includes(q)||it.category.toLowerCase().includes(q)))
+    .sort((a,b)=>(typeof a[sortCol]==='string'?a[sortCol].localeCompare(b[sortCol]):a[sortCol]-b[sortCol])*sortDir);
+}
+function exportCSV(){
+  const rows=[['Item Name','Category','Quantity','Low Stock Threshold','Status']];
+  items.forEach(i=>rows.push([i.name,i.category,i.quantity,i.threshold,getStatus(i)]));
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n'));
+  a.download='stock.csv';a.click();
+}
+
+/* ── RENDER ── */
+function renderStats(){
+  const sm={in:0,low:0,out:0};items.forEach(i=>sm[getStatus(i)]++);
+  document.getElementById('s-total').textContent=items.length;
+  document.getElementById('s-in').textContent=sm.in;
+  document.getElementById('s-low').textContent=sm.low;
+  document.getElementById('s-out').textContent=sm.out;
+  document.getElementById('s-units').textContent=items.reduce((s,i)=>s+i.quantity,0);
+  document.getElementById('b-all').textContent=items.length;
+  document.getElementById('b-in').textContent=sm.in;
+  document.getElementById('b-low').textContent=sm.low;
+  document.getElementById('b-out').textContent=sm.out;
+}
+function renderTable(){
+  const vis=getVisible();
+  document.getElementById('rowCount').textContent=vis.length+' item'+(vis.length!==1?'s':'');
+  const sa=document.getElementById('selectAll');
+  const sc=vis.filter(i=>i._sel).length;
+  sa.checked=vis.length>0&&sc===vis.length;sa.indeterminate=sc>0&&sc<vis.length;
+  ['name','category','quantity'].forEach(c=>{
+    const el=document.getElementById('sort-'+c);
+    if(el){el.textContent=sortCol===c?(sortDir===1?'▲':'▼'):'';el.closest('th').classList.toggle('sorted',sortCol===c);}
+  });
+  const lbl={in:'IN STOCK',low:'LOW STOCK',out:'OUT OF STOCK'};
+  const tbody=document.getElementById('tbody');
+  if(!vis.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="ei">🔍</div><strong>No items found</strong>Try adjusting your search or filter.</div></td></tr>`;return;}
+  tbody.innerHTML=vis.map(it=>{
+    const st=getStatus(it);
+    return`<tr>
+      <td><input type="checkbox" ${it._sel?'checked':''} onchange="toggleSel('${it.id}',this.checked)"/></td>
+      <td class="nc">${esc(it.name)}</td><td class="cc">${esc(it.category)}</td>
+      <td><div class="qty-wrap">
+        <button class="qb big" onclick="changeQty('${it.id}',-10)">-10</button>
+        <button class="qb" onclick="changeQty('${it.id}',-1)">−</button>
+        <input class="qi" type="number" value="${it.quantity}" min="0" onchange="setQty('${it.id}',this.value)"/>
+        <button class="qb" onclick="changeQty('${it.id}',1)">+</button>
+        <button class="qb big" onclick="changeQty('${it.id}',10)">+10</button>
+      </div></td>
+      <td><span class="bs ${st}"><span class="dot"></span>${lbl[st]}</span></td>
+      <td><button class="del-btn" onclick="deleteItem('${it.id}')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+      </button></td>
+    </tr>`;
+  }).join('');
+}
+function render(){renderStats();renderTable();updateBulkBar();}
+
+/* ── HISTORY ── */
+function setHistF(f){
+  histFilter=f;
+  document.querySelectorAll('.filter-btn[data-hf]').forEach(b=>b.classList.toggle('active',b.dataset.hf===f));
+  renderHistory();
+}
+function renderHistory(){
+  const q=(document.getElementById('histSearch').value||'').toLowerCase();
+  const filtered=history.filter(h=>(histFilter==='all'||h.type===histFilter)&&(!q||h.itemName.toLowerCase().includes(q)));
+  const container=document.getElementById('historyList');
+  if(!filtered.length){container.innerHTML=`<div class="empty-state"><div class="ei">🕐</div><strong>No history yet</strong>Actions will appear here.</div>`;return;}
+  const groups={};
+  filtered.forEach(h=>{
+    const key=new Date(h.ts).toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    if(!groups[key])groups[key]=[];groups[key].push(h);
+  });
+  const icon={add:'➕',remove:'➖',create:'🆕',delete:'🗑'};
+  const label={add:'Stock Added',remove:'Stock Removed',create:'Item Created',delete:'Item Deleted'};
+  container.innerHTML=Object.entries(groups).map(([day,entries])=>`
+    <div><div class="hday">📅 ${day}</div>
+    ${entries.map(h=>{
+      const time=new Date(h.ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+      const ds=h.type==='add'?`+${h.delta}`:h.type==='remove'?`${h.delta}`:h.type==='create'?`Qty: ${h.delta}`:`Was: ${h.delta}`;
+      const dc=h.type==='add'?'pos':h.type==='remove'?'neg':'neu';
+      return`<div class="hitem">
+        <div class="hico ${h.type}">${icon[h.type]}</div>
+        <div class="hinfo"><strong>${esc(h.itemName)}</strong><span>${label[h.type]} · ${esc(h.category)}</span></div>
+        <div class="hmeta"><div class="hdelta ${dc}">${ds}</div><div class="htime">${time}</div></div>
+      </div>`;
+    }).join('')}</div>`).join('');
+}
+
+/* ── PAGE NAV ── */
+function showPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelector(`.nav-tab[onclick="showPage('${p}')"]`).classList.add('active');
+  if(p==='history')renderHistory();
+  if(p==='admin')loadAdminData();
+}
+
+document.getElementById('fName').addEventListener('keydown',e=>{if(e.key==='Enter')addItem()});
+document.getElementById('loginEmail').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+</script>
+</body>
+</html>
